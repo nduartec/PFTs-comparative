@@ -56,7 +56,7 @@ if st.button("🔍 Calcular PTFs"):
     PMP_Rawls = (-0.024 + 0.004 * clay + 0.004 * om) / 100
     AD_Rawls = CC_Rawls - PMP_Rawls
 
-    # Mostrar resultados
+    # Resultados
     st.subheader("✅ Resultados estimados")
     st.write(f"**Ks:** {Ks:.2f} cm/h")
     st.write(f"**θs:** {theta_s:.3f}")
