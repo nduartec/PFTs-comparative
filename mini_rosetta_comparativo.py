@@ -8,14 +8,15 @@ st.set_page_config(page_title="Mini-ROSETTA Comparativo PTFs", layout="centered"
 
 st.title("🌱 Mini-ROSETTA: Comparación de PTFs para CC y PMP")
 
-st.write("""Esta versión calcula:
+st.write("""
+Esta versión calcula:
 - **Ks** con Rawls et al. (1982)
 - **Curva de retención de humedad** (van Genuchten)
 - **CC y PMP** usando **Saxton & Rawls (2006)** y **Rawls et al. (1982)**
 - Grafica ambos resultados para comparación.
 """)
 
-# Entradas
+# Entradas de usuario
 sand = st.number_input("Arena (%)", min_value=0.0, max_value=100.0, value=65.0)
 silt = st.number_input("Limo (%)", min_value=0.0, max_value=100.0, value=25.0)
 clay = st.number_input("Arcilla (%)", min_value=0.0, max_value=100.0, value=10.0)
@@ -24,12 +25,12 @@ om = st.number_input("Materia orgánica (%)", min_value=0.0, max_value=10.0, val
 
 if st.button("🔍 Calcular PTFs"):
 
-    # ---- Ks Rawls et al. (1982) ----
+    # ---- Ks con Rawls et al. (1982) ----
     a, b, c, d, e = -0.884, 0.0153, -0.0003, -0.197, 0.112
     log_Ks = a + b*sand + c*clay + d*bd + e*om
     Ks = 10 ** log_Ks
 
-    # ---- van Genuchten (Carsel & Parrish) ----
+    # ---- Parámetros van Genuchten (Carsel & Parrish) ----
     theta_s = 1 - bd/2.65
     theta_r = 0.045
     alpha = 0.075
@@ -55,6 +56,7 @@ if st.button("🔍 Calcular PTFs"):
     PMP_Rawls = (-0.024 + 0.004 * clay + 0.004 * om) / 100
     AD_Rawls = CC_Rawls - PMP_Rawls
 
+    # ---- Resultados ----
     st.subheader("✅ Resultados estimados")
     st.write(f"**Ks:** {Ks:.2f} cm/h")
     st.write(f"**θs:** {theta_s:.3f}")
@@ -64,20 +66,20 @@ if st.button("🔍 Calcular PTFs"):
     st.write(f"**CC Saxton:** {CC_Saxton:.3f} | PMP Saxton: {PMP_Saxton:.3f} | AD Saxton: {AD_Saxton:.3f}")
     st.write(f"**CC Rawls:** {CC_Rawls:.3f} | PMP Rawls: {PMP_Rawls:.3f} | AD Rawls: {AD_Rawls:.3f}")
 
-    # ---- Curva van Genuchten ----
+    # ---- Curva de retención ----
     h = np.logspace(-1, 3.2, 100)  # h en cm
-    psi = h / 102.04  # kPa
+    psi = h / 102.04  # Convertir a kPa
     Se = 1 / (1 + (alpha * h)**n)**(1 - 1/n)
     theta = theta_r + Se * (theta_s - theta_r)
 
     fig, ax = plt.subplots()
     ax.plot(psi, theta, label="Curva de retención")
 
-    # Saxton
+    # Líneas Saxton
     ax.axhline(CC_Saxton, color='green', linestyle='--', label="CC Saxton")
     ax.axhline(PMP_Saxton, color='red', linestyle='--', label="PMP Saxton")
 
-    # Rawls
+    # Líneas Rawls
     ax.axhline(CC_Rawls, color='blue', linestyle=':', label="CC Rawls")
     ax.axhline(PMP_Rawls, color='purple', linestyle=':', label="PMP Rawls")
 
@@ -90,7 +92,7 @@ if st.button("🔍 Calcular PTFs"):
 
     st.pyplot(fig)
 
-    # Exportar
+    # ---- Descargar CSV ----
     df = pd.DataFrame({
         'h (cm)': h,
         'Suction (kPa)': psi,
@@ -99,3 +101,4 @@ if st.button("🔍 Calcular PTFs"):
     st.download_button("📥 Descargar curva (CSV)", df.to_csv(index=False), "curva_retencion.csv")
 
 st.caption("Demo comparativa Saxton vs Rawls | Desarrollado con Streamlit")
+
